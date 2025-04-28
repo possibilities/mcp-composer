@@ -29,6 +29,11 @@ program
   .name('mcp-composer')
   .alias('mc')
   .description('A CLI tool for composing mcp clients and servers')
+
+// Add subcommand
+const addCommand = program
+  .command('add')
+  .description('Add a client-server composition')
   .argument('<client>', 'Client (claude, cline, or opencode)')
   .argument('<server>', 'Server (must be defined in ~/.mc.json)')
   .argument('[args...]', 'Additional MCP arguments')
@@ -53,7 +58,7 @@ program
     }
 
     const serverConfig = config.servers[server]
-    
+
     // Check for required arguments
     if (serverConfig.requiredArgs && serverConfig.requiredArgs.length > 0) {
       if (args.length < serverConfig.requiredArgs.length) {
@@ -64,15 +69,17 @@ program
         process.exit(1)
       }
     }
-    
+
     // Check for required environment variables
     if (serverConfig.requiredEnv) {
       const missingEnvVars = Object.entries(serverConfig.requiredEnv)
         .filter(([envVar]) => !process.env[envVar])
         .map(([envVar, description]) => `${envVar} (${description})`)
-      
+
       if (missingEnvVars.length > 0) {
-        console.error(`Error: ${server} server requires the following environment variables:\n${missingEnvVars.join('\n')}`)
+        console.error(
+          `Error: ${server} server requires the following environment variables:\n${missingEnvVars.join('\n')}`,
+        )
         console.error('Add these to ~/.mc.env or set them in your environment')
         process.exit(1)
       }
@@ -83,6 +90,17 @@ program
     if (args.length > 0) {
       console.log('Additional arguments:', args)
     }
+  })
+
+// Remove subcommand
+const removeCommand = program
+  .command('remove')
+  .description('Remove a client-server composition')
+  .argument('<client>', 'Client (claude, cline, or opencode)')
+  .argument('<server>', 'Server (must be defined in ~/.mc.json)')
+  .action(name => {
+    console.log(`Removing composition: ${name}`)
+    // Placeholder for remove functionality
   })
 
 program.parse()
