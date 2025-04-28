@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
+import * as dotenv from 'dotenv'
+
+// Load environment variables from ~/.mc.env file if it exists
+const envPath = join(homedir(), '.mc.env')
+if (existsSync(envPath)) {
+  dotenv.config({ path: envPath })
+}
 
 const program = new Command()
 
@@ -46,12 +53,27 @@ program
     }
 
     const serverConfig = config.servers[server]
+    
+    // Check for required arguments
     if (serverConfig.requiredArgs && serverConfig.requiredArgs.length > 0) {
       if (args.length < serverConfig.requiredArgs.length) {
         const missingArgs = serverConfig.requiredArgs.slice(args.length)
         console.error(
           `Error: ${server} server requires ${missingArgs.length} additional argument(s): ${missingArgs.join(', ')}`,
         )
+        process.exit(1)
+      }
+    }
+    
+    // Check for required environment variables
+    if (serverConfig.requiredEnv) {
+      const missingEnvVars = Object.entries(serverConfig.requiredEnv)
+        .filter(([envVar]) => !process.env[envVar])
+        .map(([envVar, description]) => `${envVar} (${description})`)
+      
+      if (missingEnvVars.length > 0) {
+        console.error(`Error: ${server} server requires the following environment variables:\n${missingEnvVars.join('\n')}`)
+        console.error('Add these to ~/.mc.env or set them in your environment')
         process.exit(1)
       }
     }
