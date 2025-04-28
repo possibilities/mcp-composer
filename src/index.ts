@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
+import { Command } from 'commander'
 
-const program = new Command();
+const program = new Command()
 
 program
   .name('mcp-composer')
   .alias('mc')
-  .description('A CLI tool for composing client and server with optional arguments')
-  .argument('<client>', 'Client component')
-  .argument('<server>', 'Server component')
-  .argument('[args...]', 'Optional arguments')
+  .description('A CLI tool for composing mcp clients and servers')
+  .argument('<client>', 'Client')
+  .argument('<server>', 'Server')
+  .argument('[args...]', 'Additional arguments')
   .action((client, server, args) => {
-    console.log('Client:', client);
-    console.log('Server:', server);
+    console.log('Client:', client)
+    console.log('Server:', server)
     if (args.length > 0) {
-      console.log('Additional arguments:', args);
+      console.log('Additional arguments:', args)
     }
-  });
+  })
 
-program.parse();
+program.parse()

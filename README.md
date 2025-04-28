@@ -1,28 +1,37 @@
 # mcp-composer
 
-A CLI tool for composing client and server with optional arguments.
+A CLI tool for composing MCP clients and servers
 
 ## Installation
 
 ```bash
 pnpm install
 pnpm build
-pnpm link --global # To use globally
+pnpm link --global
 ```
 
 ## Usage
 
 ```bash
-# Using the primary command
 mcp-composer <client> <server> [args...]
+```
 
-# Using the shorthand alias
+Or use shorthand alias:
+
+```bash
 mc <client> <server> [args...]
 ```
 
 ### Examples
 
 ```bash
-mcp-composer clientA serverB
-mc clientA serverB arg1 arg2 arg3
+mcp-composer claude fetch
+mc claude fetch
+```
+
+With arguments:
+
+```bash
+mcp-composer opencode sqlite ./movies.db
+mc opencode sqlite ./movies.db
 ```

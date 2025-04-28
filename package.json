@@ -19,7 +19,8 @@
   "license": "ISC",
   "packageManager": "pnpm@10.7.0",
   "dependencies": {
-    "commander": "^13.1.0"
+    "commander": "^13.1.0",
+    "prettier": "^3.5.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
