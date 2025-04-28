@@ -7,7 +7,6 @@ import { homedir } from 'os'
 
 const program = new Command()
 
-// Read config file
 function getConfig() {
   try {
     const configPath = join(homedir(), '.mc.json')
@@ -32,7 +31,6 @@ program
       console.error(`Error: Client must be one of: ${validClients.join(', ')}`)
       process.exit(1)
     }
-    console.log('Client:', client)
 
     const config = getConfig()
     const validServers = Object.keys(config.servers || {})
@@ -58,6 +56,7 @@ program
       }
     }
 
+    console.log('Client:', client)
     console.log('Server:', server)
     if (args.length > 0) {
       console.log('Additional arguments:', args)
