@@ -25,6 +25,64 @@ function getConfig() {
   }
 }
 
+const validClients = ['claude', 'cline', 'opencode']
+
+function validateClientServer(client: string, server: string) {
+  // Validate client
+  if (!validClients.includes(client)) {
+    console.error(`Error: Client must be one of: ${validClients.join(', ')}`)
+    process.exit(1)
+  }
+
+  // Validate server
+  const config = getConfig()
+  const validServers = Object.keys(config.servers || {})
+
+  if (validServers.length === 0) {
+    console.error('No servers defined in config file')
+    process.exit(1)
+  }
+
+  if (!validServers.includes(server)) {
+    console.error(`Error: Server must be one of: ${validServers.join(', ')}`)
+    process.exit(1)
+  }
+
+  return config.servers[server]
+}
+
+function validateServerRequirements(
+  server: string,
+  serverConfig: any,
+  args: string[] = [],
+) {
+  // Check for required arguments
+  if (serverConfig.requiredArgs && serverConfig.requiredArgs.length > 0) {
+    if (args.length < serverConfig.requiredArgs.length) {
+      const missingArgs = serverConfig.requiredArgs.slice(args.length)
+      console.error(
+        `Error: ${server} server requires ${missingArgs.length} additional argument(s): ${missingArgs.join(', ')}`,
+      )
+      process.exit(1)
+    }
+  }
+
+  // Check for required environment variables
+  if (serverConfig.requiredEnv) {
+    const missingEnvVars = Object.entries(serverConfig.requiredEnv)
+      .filter(([envVar]) => !process.env[envVar])
+      .map(([envVar, description]) => `${envVar} (${description})`)
+
+    if (missingEnvVars.length > 0) {
+      console.error(
+        `Error: ${server} server requires the following environment variables:\n${missingEnvVars.join('\n')}`,
+      )
+      console.error('Add these to ~/.mc.env or set them in your environment')
+      process.exit(1)
+    }
+  }
+}
+
 program
   .name('mcp-composer')
   .alias('mc')
@@ -38,52 +96,8 @@ const addCommand = program
   .argument('<server>', 'Server (must be defined in ~/.mc.json)')
   .argument('[args...]', 'Additional MCP arguments')
   .action((client, server, args) => {
-    const validClients = ['claude', 'cline', 'opencode']
-    if (!validClients.includes(client)) {
-      console.error(`Error: Client must be one of: ${validClients.join(', ')}`)
-      process.exit(1)
-    }
-
-    const config = getConfig()
-    const validServers = Object.keys(config.servers || {})
-
-    if (validServers.length === 0) {
-      console.error('No servers defined in config file')
-      process.exit(1)
-    }
-
-    if (!validServers.includes(server)) {
-      console.error(`Error: Server must be one of: ${validServers.join(', ')}`)
-      process.exit(1)
-    }
-
-    const serverConfig = config.servers[server]
-
-    // Check for required arguments
-    if (serverConfig.requiredArgs && serverConfig.requiredArgs.length > 0) {
-      if (args.length < serverConfig.requiredArgs.length) {
-        const missingArgs = serverConfig.requiredArgs.slice(args.length)
-        console.error(
-          `Error: ${server} server requires ${missingArgs.length} additional argument(s): ${missingArgs.join(', ')}`,
-        )
-        process.exit(1)
-      }
-    }
-
-    // Check for required environment variables
-    if (serverConfig.requiredEnv) {
-      const missingEnvVars = Object.entries(serverConfig.requiredEnv)
-        .filter(([envVar]) => !process.env[envVar])
-        .map(([envVar, description]) => `${envVar} (${description})`)
-
-      if (missingEnvVars.length > 0) {
-        console.error(
-          `Error: ${server} server requires the following environment variables:\n${missingEnvVars.join('\n')}`,
-        )
-        console.error('Add these to ~/.mc.env or set them in your environment')
-        process.exit(1)
-      }
-    }
+    const serverConfig = validateClientServer(client, server)
+    validateServerRequirements(server, serverConfig, args)
 
     console.log('Client:', client)
     console.log('Server:', server)
@@ -98,9 +112,17 @@ const removeCommand = program
   .description('Remove a client-server composition')
   .argument('<client>', 'Client (claude, cline, or opencode)')
   .argument('<server>', 'Server (must be defined in ~/.mc.json)')
-  .action(name => {
-    console.log(`Removing composition: ${name}`)
-    // Placeholder for remove functionality
+  .action((client, server, args) => {
+    validateClientServer(client, server)
+
+    console.log(
+      `Removing composition with client: ${client} and server: ${server}`,
+    )
+    console.log('Client:', client)
+    console.log('Server:', server)
+    if (args.length > 0) {
+      console.log('Additional arguments:', args)
+    }
   })
 
 program.parse()

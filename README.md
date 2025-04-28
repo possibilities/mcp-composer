@@ -12,18 +12,42 @@ pnpm link --global
 
 ## Usage
 
+The CLI provides different subcommands:
+
+### Add
+
+Add a client-server composition:
+
 ```bash
-mc <client> <server> [args...]
+mc add <client> <server> [args...]
 ```
 
-### Examples
+Examples:
 
 ```bash
-mc claude fetch
+mc add claude fetch
 ```
 
 With arguments:
 
 ```bash
-mc opencode sqlite ./movies.db
+mc add opencode sqlite ./movies.db
 ```
+
+### Remove
+
+Remove a client-server composition:
+
+```bash
+mc remove <client> <server>
+```
+
+Example:
+
+```bash
+mc remove claude fetch
+```
+
+## Configuration
+
+The CLI reads server configurations from `~/.mc.json` and environment variables from `~/.mc.env`.
