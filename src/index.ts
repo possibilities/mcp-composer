@@ -6,7 +6,6 @@ import { join } from 'path'
 import { homedir } from 'os'
 import * as dotenv from 'dotenv'
 
-// Load environment variables from ~/.mc.env file if it exists
 const envPath = join(homedir(), '.mc.env')
 if (existsSync(envPath)) {
   dotenv.config({ path: envPath })
@@ -28,13 +27,11 @@ function getConfig() {
 const validClients = ['claude', 'cline', 'opencode']
 
 function validateClientServer(client: string, server: string) {
-  // Validate client
   if (!validClients.includes(client)) {
     console.error(`Error: Client must be one of: ${validClients.join(', ')}`)
     process.exit(1)
   }
 
-  // Validate server
   const config = getConfig()
   const validServers = Object.keys(config.servers || {})
 
@@ -56,7 +53,6 @@ function validateServerRequirements(
   serverConfig: any,
   args: string[] = [],
 ) {
-  // Check for required arguments
   if (serverConfig.requiredArgs && serverConfig.requiredArgs.length > 0) {
     if (args.length < serverConfig.requiredArgs.length) {
       const missingArgs = serverConfig.requiredArgs.slice(args.length)
@@ -67,7 +63,6 @@ function validateServerRequirements(
     }
   }
 
-  // Check for required environment variables
   if (serverConfig.requiredEnv) {
     const missingEnvVars = Object.entries(serverConfig.requiredEnv)
       .filter(([envVar]) => !process.env[envVar])
@@ -88,7 +83,6 @@ program
   .alias('mc')
   .description('A CLI tool for composing mcp clients and servers')
 
-// Add subcommand
 const addCommand = program
   .command('add')
   .description('Add a client-server composition')
@@ -106,7 +100,6 @@ const addCommand = program
     }
   })
 
-// Remove subcommand
 const removeCommand = program
   .command('remove')
   .description('Remove a client-server composition')
