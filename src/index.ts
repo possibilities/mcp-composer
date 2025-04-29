@@ -1,10 +1,23 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander'
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
 import * as dotenv from 'dotenv'
+
+interface ClientPaths {
+  [key: string]: string;
+}
+
+const clients: ClientPaths = {
+  claude: join(homedir(), '.claude.json'),
+  opencode: join(homedir(), '.opencode.json'),
+  cline: join(
+    homedir(),
+    '.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json',
+  ),
+}
 
 const envPath = join(homedir(), '.mc.env')
 if (existsSync(envPath)) {
@@ -20,6 +33,27 @@ function getConfig() {
     return JSON.parse(configFile)
   } catch (error: any) {
     console.error('Error reading config file:', error.message)
+    process.exit(1)
+  }
+}
+
+function getClientConfig(client: string) {
+  try {
+    const configPath = clients[client]
+    const configFile = readFileSync(configPath, 'utf8')
+    return JSON.parse(configFile)
+  } catch (error: any) {
+    console.error(`Error reading ${client} config file:`, error.message)
+    process.exit(1)
+  }
+}
+
+function updateClientConfig(client: string, config: any) {
+  try {
+    const configPath = clients[client]
+    writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8')
+  } catch (error: any) {
+    console.error(`Error writing ${client} config file:`, error.message)
     process.exit(1)
   }
 }
@@ -93,11 +127,27 @@ const addCommand = program
     const serverConfig = validateClientServer(client, server)
     validateServerRequirements(server, serverConfig, args)
 
-    console.log('Client:', client)
-    console.log('Server:', server)
-    if (args.length > 0) {
-      console.log('Additional arguments:', args)
+    // Get client config and update it with the server configuration
+    const clientConfig = getClientConfig(client)
+    
+    // Ensure mcpServers object exists
+    if (!clientConfig.mcpServers) {
+      clientConfig.mcpServers = {}
     }
+    
+    // Check if server already exists in client config
+    if (clientConfig.mcpServers[server]) {
+      console.error(`Error: Server '${server}' already exists in ${client} configuration`)
+      process.exit(1)
+    }
+    
+    // Add server config to client's mcpServers
+    clientConfig.mcpServers[server] = serverConfig
+    
+    // Save updated client config
+    updateClientConfig(client, clientConfig)
+
+    console.log(`Added ${server} server to ${client} client`)
   })
 
 const removeCommand = program
@@ -105,17 +155,28 @@ const removeCommand = program
   .description('Remove a client-server composition')
   .argument('<client>', 'Client (claude, cline, or opencode)')
   .argument('<server>', 'Server (must be defined in ~/.mc.json)')
-  .action((client, server, args) => {
-    validateClientServer(client, server)
-
-    console.log(
-      `Removing composition with client: ${client} and server: ${server}`,
-    )
-    console.log('Client:', client)
-    console.log('Server:', server)
-    if (args.length > 0) {
-      console.log('Additional arguments:', args)
+  .action((client, server) => {
+    if (!validClients.includes(client)) {
+      console.error(`Error: Client must be one of: ${validClients.join(', ')}`)
+      process.exit(1)
     }
+
+    // Get client config
+    const clientConfig = getClientConfig(client)
+    
+    // Check if the mcpServers exists and has the specified server
+    if (!clientConfig.mcpServers || !clientConfig.mcpServers[server]) {
+      console.error(`Server ${server} not found in ${client} configuration`)
+      process.exit(1)
+    }
+    
+    // Remove the server from the client's mcpServers
+    delete clientConfig.mcpServers[server]
+    
+    // Save updated client config
+    updateClientConfig(client, clientConfig)
+
+    console.log(`Removed ${server} server from ${client} client`)
   })
 
 program.parse()
