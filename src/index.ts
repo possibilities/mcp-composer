@@ -97,14 +97,23 @@ function validateServerRequirements(
     }
   }
 
-  if (serverConfig.requiredEnv) {
-    const missingEnvVars = Object.entries(serverConfig.requiredEnv)
-      .filter(([envVar]) => !process.env[envVar])
-      .map(([envVar, description]) => `${envVar} (${description})`)
+  // Extract required environment variables from env values with %{KEY_NAME} format
+  if (serverConfig.env) {
+    const requiredEnvVars: string[] = []
+    
+    for (const [key, value] of Object.entries(serverConfig.env)) {
+      if (typeof value === 'string' && value.startsWith('%{') && value.endsWith('}')) {
+        // Extract environment variable name from the placeholder
+        const envVarName = value.substring(2, value.length - 1)
+        if (!process.env[envVarName]) {
+          requiredEnvVars.push(envVarName)
+        }
+      }
+    }
 
-    if (missingEnvVars.length > 0) {
+    if (requiredEnvVars.length > 0) {
       console.error(
-        `Error: ${server} server requires the following environment variables:\n${missingEnvVars.join('\n')}`,
+        `Error: ${server} server requires the following environment variables:\n${requiredEnvVars.join('\n')}`,
       )
       console.error('Add these to ~/.mc.env or set them in your environment')
       process.exit(1)
@@ -141,10 +150,9 @@ const addCommand = program
       process.exit(1)
     }
     
-    // Create a copy of the server config without requiredArgs and requiredEnv
+    // Create a copy of the server config without requiredArgs
     const clientServerConfig = { ...serverConfig }
     delete clientServerConfig.requiredArgs
-    delete clientServerConfig.requiredEnv
     
     // If there are additional arguments from command line, append them to the args array in the config
     if (args.length > 0) {

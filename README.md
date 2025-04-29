@@ -73,9 +73,6 @@ Example structure:
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "%{GITHUB_PERSONAL_ACCESS_TOKEN}"
-      },
-      "requiredEnv": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "Github Personal Access Token"
       }
     },
     "sqlite": {
@@ -91,7 +88,6 @@ Each server can have the following properties:
 - `command`: The command to execute
 - `args`: Array of command-line arguments
 - `env`: Environment variables to pass to the server
-- `requiredEnv`: Environment variables that must be set (with descriptions)
 - `requiredArgs`: Additional arguments that must be provided
 
 When adding a server to a client environment variable placeholders (like `%{GITHUB_PERSONAL_ACCESS_TOKEN}`) are replaced with actual values.
