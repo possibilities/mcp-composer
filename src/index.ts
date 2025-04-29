@@ -345,4 +345,35 @@ const listCommand = program
     }
   })
 
+const clearCommand = program
+  .command('clear')
+  .description('Remove all server configurations from a client')
+  .argument('<client>', 'Client (claude, cline, or opencode)')
+  .action(client => {
+    if (!validClients.includes(client)) {
+      console.error(`Error: Client must be one of: ${validClients.join(', ')}`)
+      process.exit(1)
+    }
+
+    // Get client config
+    const clientConfig = getClientConfig(client)
+    
+    // Check if mcpServers exists
+    if (!clientConfig.mcpServers || Object.keys(clientConfig.mcpServers).length === 0) {
+      console.log(`No servers configured for ${client}`)
+      return
+    }
+    
+    // Count the number of servers to be cleared
+    const serverCount = Object.keys(clientConfig.mcpServers).length
+    
+    // Clear all servers by setting mcpServers to an empty object
+    clientConfig.mcpServers = {}
+    
+    // Save updated client config
+    updateClientConfig(client, clientConfig)
+
+    console.log(`Cleared all servers (${serverCount}) from ${client} client`)
+  })
+
 program.parse()

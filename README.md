@@ -68,6 +68,20 @@ List servers for a specific client:
 mc list claude
 ```
 
+### Clear
+
+Remove all server configurations from a client:
+
+```bash
+mc clear <client>
+```
+
+Example:
+
+```bash
+mc clear claude
+```
+
 ## Configuration Files
 
 ### Server Configuration (~/.mc.json)
