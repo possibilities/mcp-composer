@@ -141,13 +141,38 @@ const addCommand = program
       process.exit(1)
     }
     
-    // Create a copy of the server config without requiredArgs
+    // Create a copy of the server config without requiredArgs and requiredEnv
     const clientServerConfig = { ...serverConfig }
     delete clientServerConfig.requiredArgs
+    delete clientServerConfig.requiredEnv
     
     // If there are additional arguments from command line, append them to the args array in the config
     if (args.length > 0) {
       clientServerConfig.args = [...(clientServerConfig.args || []), ...args]
+    }
+    
+    // Replace environment variable placeholders in env values
+    if (clientServerConfig.env) {
+      const replacedEnv: Record<string, string> = {}
+      
+      for (const [key, value] of Object.entries(clientServerConfig.env)) {
+        if (typeof value === 'string' && value.startsWith('%{') && value.endsWith('}')) {
+          // Extract environment variable name from the placeholder
+          const envVarName = value.substring(2, value.length - 1)
+          const envValue = process.env[envVarName]
+          
+          if (envValue) {
+            replacedEnv[key] = envValue
+          } else {
+            console.warn(`Warning: Environment variable ${envVarName} not found. Using placeholder in config.`)
+            replacedEnv[key] = value
+          }
+        } else {
+          replacedEnv[key] = value as string
+        }
+      }
+      
+      clientServerConfig.env = replacedEnv
     }
     
     // Add the modified server config to client's mcpServers
