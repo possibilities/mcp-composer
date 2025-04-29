@@ -77,8 +77,7 @@ Example structure:
     },
     "sqlite": {
       "command": "uvx",
-      "args": ["mcp-server-sqlite", "--db-path"],
-      "requiredArgs": ["Sqlite database path"]
+      "args": ["mcp-server-sqlite", "--db-path", "%{sqlite-db-path}"]
     }
   }
 }
@@ -88,9 +87,10 @@ Each server can have the following properties:
 - `command`: The command to execute
 - `args`: Array of command-line arguments
 - `env`: Environment variables to pass to the server
-- `requiredArgs`: Additional arguments that must be provided
 
-When adding a server to a client environment variable placeholders (like `%{GITHUB_PERSONAL_ACCESS_TOKEN}`) are replaced with actual values.
+Placeholders in the format `%{name}` are supported in both the `args` array and `env` values:
+- In `args`, placeholders are replaced with command-line arguments provided when running the add command
+- In `env`, placeholders are replaced with environment variables from `~/.mc.env` or the system environment
 
 ### Environment Variables (~/.mc.env)
 
@@ -100,8 +100,6 @@ Example:
 
 ```env
 GITHUB_PERSONAL_ACCESS_TOKEN=ghp_12345abcde67890fghij
-PERPLEXITY_API_KEY=pplx-12345abcde67890fghij
-TAVILY_API_KEY=tvly-12345abcde67890fghij
 ```
 
 These variables are used to validate server requirements and to replace placeholders in server configurations.

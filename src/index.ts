@@ -85,39 +85,63 @@ function validateClientServer(client: string, server: string) {
 function validateServerRequirements(
   server: string,
   serverConfig: any,
-  args: string[] = [],
+  providedArgs: string[] = [],
 ) {
-  if (serverConfig.requiredArgs && serverConfig.requiredArgs.length > 0) {
-    if (args.length < serverConfig.requiredArgs.length) {
-      const missingArgs = serverConfig.requiredArgs.slice(args.length)
-      console.error(
-        `Error: ${server} server requires ${missingArgs.length} additional argument(s): ${missingArgs.join(', ')}`,
-      )
-      process.exit(1)
+  const requiredItems: { type: 'arg' | 'env'; name: string }[] = []
+  
+  // Extract required arguments from the args array with %{arg-name} format
+  if (serverConfig.args) {
+    let argPlaceholderCount = 0
+    
+    for (const arg of serverConfig.args) {
+      if (typeof arg === 'string' && arg.startsWith('%{') && arg.endsWith('}')) {
+        argPlaceholderCount++
+        if (providedArgs.length < argPlaceholderCount) {
+          // Extract argument name from the placeholder
+          const argName = arg.substring(2, arg.length - 1)
+          requiredItems.push({ type: 'arg', name: argName })
+        }
+      }
     }
   }
 
   // Extract required environment variables from env values with %{KEY_NAME} format
   if (serverConfig.env) {
-    const requiredEnvVars: string[] = []
-    
     for (const [key, value] of Object.entries(serverConfig.env)) {
       if (typeof value === 'string' && value.startsWith('%{') && value.endsWith('}')) {
         // Extract environment variable name from the placeholder
         const envVarName = value.substring(2, value.length - 1)
         if (!process.env[envVarName]) {
-          requiredEnvVars.push(envVarName)
+          requiredItems.push({ type: 'env', name: envVarName })
         }
       }
     }
+  }
 
-    if (requiredEnvVars.length > 0) {
-      console.error(
-        `Error: ${server} server requires the following environment variables:\n${requiredEnvVars.join('\n')}`,
-      )
-      console.error('Add these to ~/.mc.env or set them in your environment')
-      process.exit(1)
+  if (requiredItems.length > 0) {
+    const missingArgs = requiredItems
+      .filter(item => item.type === 'arg')
+      .map(item => `Argument: ${item.name}`)
+    
+    const missingEnvVars = requiredItems
+      .filter(item => item.type === 'env')
+      .map(item => `Environment variable: ${item.name}`)
+    
+    const missingItems = [...missingArgs, ...missingEnvVars]
+    
+    console.error(
+      `Error: ${server} server requires the following:\n${missingItems.join('\n')}`,
+    )
+    
+    if (missingEnvVars.length > 0) {
+      console.error('Add environment variables to ~/.mc.env or set them in your environment')
     }
+    
+    if (missingArgs.length > 0) {
+      console.error('Add the required arguments when running the command')
+    }
+    
+    process.exit(1)
   }
 }
 
@@ -150,13 +174,38 @@ const addCommand = program
       process.exit(1)
     }
     
-    // Create a copy of the server config without requiredArgs
+    // Create a copy of the server config
     const clientServerConfig = { ...serverConfig }
-    delete clientServerConfig.requiredArgs
     
-    // If there are additional arguments from command line, append them to the args array in the config
-    if (args.length > 0) {
-      clientServerConfig.args = [...(clientServerConfig.args || []), ...args]
+    // Replace placeholder arguments with provided arguments
+    if (clientServerConfig.args) {
+      const replacedArgs: string[] = []
+      let providedArgIndex = 0
+      
+      for (const arg of clientServerConfig.args) {
+        if (typeof arg === 'string' && arg.startsWith('%{') && arg.endsWith('}')) {
+          // If we have a provided argument, use it
+          if (providedArgIndex < args.length) {
+            replacedArgs.push(args[providedArgIndex])
+            providedArgIndex++
+          } else {
+            // Otherwise, keep the placeholder
+            replacedArgs.push(arg)
+          }
+        } else {
+          replacedArgs.push(arg)
+        }
+      }
+      
+      // Append any remaining provided arguments
+      if (providedArgIndex < args.length) {
+        replacedArgs.push(...args.slice(providedArgIndex))
+      }
+      
+      clientServerConfig.args = replacedArgs
+    } else if (args.length > 0) {
+      // If there are no args in the config but arguments were provided, add them
+      clientServerConfig.args = args
     }
     
     // Replace environment variable placeholders in env values
