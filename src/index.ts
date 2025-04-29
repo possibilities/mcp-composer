@@ -156,7 +156,8 @@ const addCommand = program
   .argument('<client>', 'Client (claude, cline, or opencode)')
   .argument('<server>', 'Server (must be defined in ~/.mc.json)')
   .argument('[args...]', 'Additional MCP arguments')
-  .action((client, server, args) => {
+  .option('-f, --force', 'Force add even if server already exists')
+  .action((client, server, args, options) => {
     const serverConfig = validateClientServer(client, server)
     validateServerRequirements(server, serverConfig, args)
 
@@ -169,8 +170,9 @@ const addCommand = program
     }
     
     // Check if server already exists in client config
-    if (clientConfig.mcpServers[server]) {
+    if (clientConfig.mcpServers[server] && !options.force) {
       console.error(`Error: Server '${server}' already exists in ${client} configuration`)
+      console.error('Use --force or -f to overwrite existing configuration')
       process.exit(1)
     }
     
@@ -238,7 +240,8 @@ const addCommand = program
     // Save updated client config
     updateClientConfig(client, clientConfig)
 
-    console.log(`Added ${server} server to ${client} client`)
+    const actionVerb = options.force && clientConfig.mcpServers[server] ? 'Updated' : 'Added'
+    console.log(`${actionVerb} ${server} server to ${client} client`)
   })
 
 const removeCommand = program
