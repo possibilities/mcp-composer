@@ -141,8 +141,17 @@ const addCommand = program
       process.exit(1)
     }
     
-    // Add server config to client's mcpServers
-    clientConfig.mcpServers[server] = serverConfig
+    // Create a copy of the server config without requiredArgs
+    const clientServerConfig = { ...serverConfig }
+    delete clientServerConfig.requiredArgs
+    
+    // If there are additional arguments from command line, append them to the args array in the config
+    if (args.length > 0) {
+      clientServerConfig.args = [...(clientServerConfig.args || []), ...args]
+    }
+    
+    // Add the modified server config to client's mcpServers
+    clientConfig.mcpServers[server] = clientServerConfig
     
     // Save updated client config
     updateClientConfig(client, clientConfig)
