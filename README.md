@@ -48,6 +48,26 @@ Example:
 mc remove claude fetch
 ```
 
+### List
+
+List all MCP server configurations:
+
+```bash
+mc list [client]
+```
+
+Examples:
+
+List all clients and their configured servers:
+```bash
+mc list
+```
+
+List servers for a specific client:
+```bash
+mc list claude
+```
+
 ## Configuration Files
 
 ### Server Configuration (~/.mc.json)
