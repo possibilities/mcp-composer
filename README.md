@@ -1,6 +1,6 @@
 # MCP Composer
 
-A CLI tool for composing MCP clients and servers
+A CLI tool for composing Model Context Protocol (MCP) clients and servers.
 
 ## Installation
 
@@ -48,6 +48,73 @@ Example:
 mc remove claude fetch
 ```
 
-## Configuration
+## Configuration Files
 
-The CLI reads server configurations from `~/.mc.json` and environment variables from `~/.mc.env`.
+### Server Configuration (~/.mc.json)
+
+The CLI reads server configurations from `~/.mc.json`. This file contains a `servers` object with named server configurations.
+
+Example structure:
+
+```json
+{
+  "servers": {
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "%{GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "requiredEnv": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "Github Personal Access Token"
+      }
+    },
+    "sqlite": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path"],
+      "requiredArgs": ["Sqlite database path"]
+    }
+  }
+}
+```
+
+Each server can have the following properties:
+- `command`: The command to execute
+- `args`: Array of command-line arguments
+- `env`: Environment variables to pass to the server
+- `requiredEnv`: Environment variables that must be set (with descriptions)
+- `requiredArgs`: Additional arguments that must be provided
+
+When adding a server to a client environment variable placeholders (like `%{GITHUB_PERSONAL_ACCESS_TOKEN}`) are replaced with actual values.
+
+### Environment Variables (~/.mc.env)
+
+The CLI reads environment variables from `~/.mc.env`. This file should be in the standard dotenv format.
+
+Example:
+
+```env
+GITHUB_PERSONAL_ACCESS_TOKEN=ghp_12345abcde67890fghij
+PERPLEXITY_API_KEY=pplx-12345abcde67890fghij
+TAVILY_API_KEY=tvly-12345abcde67890fghij
+```
+
+These variables are used to validate server requirements and to replace placeholders in server configurations.
+
+## Supported Clients
+
+The CLI currently supports the following clients:
+- `claude`: `~/.claude.json`
+- `opencode`: `~/.opencode.json`
+- `cline`: `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+
+Each client's configuration file is updated with the appropriate server configuration in the `mcpServers` section.
