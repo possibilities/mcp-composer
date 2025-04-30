@@ -58,6 +58,11 @@ function getConfig() {
 function getJsonlinesConfig(configPath: string) {
   try {
     const configFile = readFileSync(configPath, 'utf8')
+    
+    // Handle empty files
+    if (!configFile.trim()) {
+      return { mcpServers: {} }
+    }
 
     // Split by newlines and parse each line as JSON
     const lines = configFile.trim().split('\n')
