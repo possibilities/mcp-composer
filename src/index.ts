@@ -7,37 +7,37 @@ import { homedir } from 'os'
 import * as dotenv from 'dotenv'
 
 interface ClientConfig {
-  path: string;
-  type: 'json' | 'jsonlines';
+  path: string
+  type: 'json' | 'jsonlines'
 }
 
 interface ClientConfigs {
-  [key: string]: ClientConfig;
+  [key: string]: ClientConfig
 }
 
 const clients: ClientConfigs = {
   claude: {
     path: join(homedir(), '.claude.json'),
-    type: 'json'
+    type: 'json',
   },
   opencode: {
     path: join(homedir(), '.opencode.json'),
-    type: 'json'
+    type: 'json',
   },
   cline: {
     path: join(
       homedir(),
       '.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json',
     ),
-    type: 'json'
+    type: 'json',
   },
   'y-cli': {
     path: join(homedir(), '.local/share/y-cli/mcp_config.jsonl'),
-    type: 'jsonlines'
-  }
+    type: 'jsonlines',
+  },
 }
 
-const envPath = join(homedir(), '.mc.env')
+const envPath = join(homedir(), '.mcp.env')
 if (existsSync(envPath)) {
   dotenv.config({ path: envPath })
 }
@@ -46,7 +46,7 @@ const program = new Command()
 
 function getConfig() {
   try {
-    const configPath = join(homedir(), '.mc.json')
+    const configPath = join(homedir(), '.mcp.json')
     const configFile = readFileSync(configPath, 'utf8')
     return JSON.parse(configFile)
   } catch (error: any) {
@@ -57,88 +57,92 @@ function getConfig() {
 
 function getJsonlinesConfig(configPath: string) {
   try {
-    const configFile = readFileSync(configPath, 'utf8');
-    
+    const configFile = readFileSync(configPath, 'utf8')
+
     // Split by newlines and parse each line as JSON
-    const lines = configFile.trim().split('\n');
-    const configs = lines.map(line => JSON.parse(line));
-    
+    const lines = configFile.trim().split('\n')
+    const configs = lines.map(line => JSON.parse(line))
+
     // Convert to mcpServers format
-    const result: any = { mcpServers: {} };
-    
+    const result: any = { mcpServers: {} }
+
     for (const config of configs) {
       if (config.name) {
         result.mcpServers[config.name] = {
           command: config.command,
           args: config.args || [],
           env: config.env || {},
-          auto_confirm: config.auto_confirm || []
-        };
+          auto_confirm: config.auto_confirm || [],
+        }
       }
     }
-    
-    return result;
+
+    return result
   } catch (error: any) {
-    console.error(`Error reading jsonlines config file:`, error.message);
-    process.exit(1);
+    console.error(`Error reading jsonlines config file:`, error.message)
+    process.exit(1)
   }
 }
 
 function updateJsonlinesConfig(configPath: string, config: any) {
   try {
     // Convert from mcpServers format to jsonlines format
-    const servers = config.mcpServers || {};
-    const jsonlConfigs = Object.entries(servers).map(([name, serverConfig]: [string, any]) => {
-      return {
-        name,
-        command: serverConfig.command,
-        args: serverConfig.args || [],
-        env: serverConfig.env || {},
-        auto_confirm: serverConfig.auto_confirm || []
-      };
-    });
-    
+    const servers = config.mcpServers || {}
+    const jsonlConfigs = Object.entries(servers).map(
+      ([name, serverConfig]: [string, any]) => {
+        return {
+          name,
+          command: serverConfig.command,
+          args: serverConfig.args || [],
+          env: serverConfig.env || {},
+          auto_confirm: serverConfig.auto_confirm || [],
+        }
+      },
+    )
+
     // Convert each config to a JSON line
-    const jsonlContent = jsonlConfigs.map(config => JSON.stringify(config)).join('\n');
-    
+    const jsonlContent = jsonlConfigs
+      .map(config => JSON.stringify(config))
+      .join('\n')
+
     // Write to file
-    writeFileSync(configPath, jsonlContent, 'utf8');
+    writeFileSync(configPath, jsonlContent, 'utf8')
   } catch (error: any) {
-    console.error(`Error writing jsonlines config file:`, error.message);
-    process.exit(1);
+    console.error(`Error writing jsonlines config file:`, error.message)
+    process.exit(1)
   }
 }
 
 function getClientConfig(client: string) {
   try {
-    const clientConfig = clients[client];
-    
+    const clientConfig = clients[client]
+
     if (clientConfig.type === 'jsonlines') {
-      return getJsonlinesConfig(clientConfig.path);
+      return getJsonlinesConfig(clientConfig.path)
     } else {
       // Default JSON handling
-      const configFile = readFileSync(clientConfig.path, 'utf8');
-      return JSON.parse(configFile);
+      const configFile = readFileSync(clientConfig.path, 'utf8')
+      return JSON.parse(configFile)
     }
   } catch (error: any) {
-    console.error(`Error reading ${client} config file:`, error.message);
-    process.exit(1);
+    console.error(`Error reading ${client} config file:`, error.message)
+    process.exit(1)
   }
 }
 
 function updateClientConfig(client: string, config: any) {
   try {
-    const clientConfig = clients[client];
-    
+    const clientConfig = clients[client]
+
     if (clientConfig.type === 'jsonlines') {
-      updateJsonlinesConfig(clientConfig.path, config);
+      updateJsonlinesConfig(clientConfig.path, config)
     } else {
       // Default JSON handling
-      writeFileSync(clientConfig.path, JSON.stringify(config, null, 2), 'utf8');
+      writeFileSync(clientConfig.path, JSON.stringify(config, null, 2), 'utf8')
     }
   } catch (error: any) {
-    console.error(`Error writing ${client} config file:`, error.message);
-    process.exit(1);
+    console.error(`Error writing ${client} config file:`, error.message)
+    process.exit(1)
   }
 }
 
@@ -227,7 +231,7 @@ function validateServerRequirements(
 
     if (missingEnvVars.length > 0) {
       console.error(
-        'Add environment variables to ~/.mc.env or set them in your environment',
+        'Add environment variables to ~/.mcp.env or set them in your environment',
       )
     }
 
@@ -241,14 +245,13 @@ function validateServerRequirements(
 
 program
   .name('mcp-composer')
-  .alias('mc')
   .description('A CLI tool for composing mcp clients and servers')
 
 const addCommand = program
   .command('add')
   .description('Add a client-server composition')
   .argument('<client>', 'Client (claude, cline, opencode, or y-cli)')
-  .argument('<server>', 'Server (must be defined in ~/.mc.json)')
+  .argument('<server>', 'Server (must be defined in ~/.mcp.json)')
   .argument('[args...]', 'Additional MCP arguments')
   .option('-f, --force', 'Force add even if server already exists')
   .action((client, server, args, options) => {
@@ -355,7 +358,7 @@ const removeCommand = program
   .command('remove')
   .description('Remove a client-server composition')
   .argument('<client>', 'Client (claude, cline, opencode, or y-cli)')
-  .argument('<server>', 'Server (must be defined in ~/.mc.json)')
+  .argument('<server>', 'Server (must be defined in ~/.mcp.json)')
   .action((client, server) => {
     if (!validClients.includes(client)) {
       console.error(`Error: Client must be one of: ${validClients.join(', ')}`)
@@ -441,19 +444,22 @@ const clearCommand = program
 
     // Get client config
     const clientConfig = getClientConfig(client)
-    
+
     // Check if mcpServers exists
-    if (!clientConfig.mcpServers || Object.keys(clientConfig.mcpServers).length === 0) {
+    if (
+      !clientConfig.mcpServers ||
+      Object.keys(clientConfig.mcpServers).length === 0
+    ) {
       console.log(`No servers configured for ${client}`)
       return
     }
-    
+
     // Count the number of servers to be cleared
     const serverCount = Object.keys(clientConfig.mcpServers).length
-    
+
     // Clear all servers by setting mcpServers to an empty object
     clientConfig.mcpServers = {}
-    
+
     // Save updated client config
     updateClientConfig(client, clientConfig)
 
@@ -462,39 +468,45 @@ const clearCommand = program
 
 const serversCommand = program
   .command('servers')
-  .description('List all available servers in ~/.mc.json')
+  .description('List all available servers in ~/.mcp.json')
   .option('-v, --verbose', 'Show detailed server configurations')
   .option('-V', 'Show detailed server configurations (alias for --verbose)')
-  .action((options) => {
+  .action(options => {
     try {
       const config = getConfig()
       const verbose = options.verbose || options.V
-      
+
       if (!config.servers || Object.keys(config.servers).length === 0) {
-        console.log('No servers defined in ~/.mc.json')
+        console.log('No servers defined in ~/.mcp.json')
         return
       }
-      
+
       if (verbose) {
         console.log('Available servers:')
-        Object.entries(config.servers).forEach(([name, serverConfig]: [string, any]) => {
-          console.log(`- ${name}:`)
-          console.log(`  Command: ${serverConfig.command}`)
-          if (serverConfig.args && serverConfig.args.length > 0) {
-            console.log(`  Args: ${serverConfig.args.join(' ')}`)
-          }
-          if (serverConfig.env && Object.keys(serverConfig.env).length > 0) {
-            console.log('  Required environment variables:')
-            Object.entries(serverConfig.env).forEach(([key, value]) => {
-              if (typeof value === 'string' && value.startsWith('%{') && value.endsWith('}')) {
-                const envVarName = value.substring(2, value.length - 1)
-                console.log(`    ${key}: ${envVarName}`)
-              } else {
-                console.log(`    ${key}: (static value)`)
-              }
-            })
-          }
-        })
+        Object.entries(config.servers).forEach(
+          ([name, serverConfig]: [string, any]) => {
+            console.log(`- ${name}:`)
+            console.log(`  Command: ${serverConfig.command}`)
+            if (serverConfig.args && serverConfig.args.length > 0) {
+              console.log(`  Args: ${serverConfig.args.join(' ')}`)
+            }
+            if (serverConfig.env && Object.keys(serverConfig.env).length > 0) {
+              console.log('  Required environment variables:')
+              Object.entries(serverConfig.env).forEach(([key, value]) => {
+                if (
+                  typeof value === 'string' &&
+                  value.startsWith('%{') &&
+                  value.endsWith('}')
+                ) {
+                  const envVarName = value.substring(2, value.length - 1)
+                  console.log(`    ${key}: ${envVarName}`)
+                } else {
+                  console.log(`    ${key}: (static value)`)
+                }
+              })
+            }
+          },
+        )
       } else {
         // Simple output - just list server names
         const serverNames = Object.keys(config.servers)
@@ -504,7 +516,7 @@ const serversCommand = program
         })
       }
     } catch (error: any) {
-      console.error('Error reading servers from ~/.mc.json:', error.message)
+      console.error('Error reading servers from ~/.mcp.json:', error.message)
       process.exit(1)
     }
   })

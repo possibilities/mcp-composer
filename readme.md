@@ -5,6 +5,15 @@ A CLI tool for composing Model Context Protocol (MCP) clients and servers.
 ## Installation
 
 ```bash
+npm install -g mcp-composer
+# or with pnpm
+pnpm install -g mcp-composer
+```
+
+For development:
+```bash
+git clone <repository-url>
+cd mcp-composer
 pnpm install
 pnpm build
 pnpm link --global
@@ -12,26 +21,27 @@ pnpm link --global
 
 ## Usage
 
-The CLI provides different subcommands:
+The CLI provides several subcommands:
 
 ### Add
 
 Add a client-server composition:
 
 ```bash
-mc add <client> <server> [args...]
+mcp-composer add <client> <server> [args...]
 ```
 
 Examples:
 
 ```bash
-mc add claude fetch
-```
+# Add a basic server to a client
+mcp-composer add claude fetch
 
-With arguments:
+# With arguments (placeholders in server config will be replaced)
+mcp-composer add opencode sqlite ./movies.db
 
-```bash
-mc add opencode sqlite ./movies.db
+# Force overwrite existing configuration
+mcp-composer add claude context7 --force
 ```
 
 ### Remove
@@ -39,13 +49,13 @@ mc add opencode sqlite ./movies.db
 Remove a client-server composition:
 
 ```bash
-mc remove <client> <server>
+mcp-composer remove <client> <server>
 ```
 
 Example:
 
 ```bash
-mc remove claude fetch
+mcp-composer remove claude fetch
 ```
 
 ### List
@@ -53,19 +63,17 @@ mc remove claude fetch
 List all MCP server configurations:
 
 ```bash
-mc list [client]
+mcp-composer list [client]
 ```
 
 Examples:
 
-List all clients and their configured servers:
 ```bash
-mc list
-```
+# List all clients and their configured servers
+mcp-composer list
 
-List servers for a specific client:
-```bash
-mc list claude
+# List servers for a specific client
+mcp-composer list claude
 ```
 
 ### Clear
@@ -73,36 +81,35 @@ mc list claude
 Remove all server configurations from a client:
 
 ```bash
-mc clear <client>
+mcp-composer clear <client>
 ```
 
 Example:
 
 ```bash
-mc clear claude
+mcp-composer clear claude
 ```
 
 ### Servers
 
-List all available servers configured in ~/.mc.json:
+List all available servers configured in ~/.mcp.json:
 
 ```bash
-mc servers [options]
+mcp-composer servers [options]
 ```
 
-By default, this command shows only server names. Use the verbose option to see detailed configuration:
-
+Options:
 ```bash
-mc servers --verbose
-mc servers -v
-mc servers -V
+# Show detailed configuration
+mcp-composer servers --verbose
+mcp-composer servers -v
 ```
 
 ## Configuration Files
 
-### Server Configuration (~/.mc.json)
+### Server Configuration (~/.mcp.json)
 
-The CLI reads server configurations from `~/.mc.json`. This file contains a `servers` object with named server configurations.
+The CLI reads server configurations from `~/.mcp.json`. This file contains a `servers` object with named server configurations.
 
 Example structure:
 
@@ -139,11 +146,11 @@ Each server can have the following properties:
 
 Placeholders in the format `%{name}` are supported in both the `args` array and `env` values:
 - In `args`, placeholders are replaced with command-line arguments provided when running the add command
-- In `env`, placeholders are replaced with environment variables from `~/.mc.env` or the system environment
+- In `env`, placeholders are replaced with environment variables from `~/.mcp.env` or the system environment
 
-### Environment Variables (~/.mc.env)
+### Environment Variables (~/.mcp.env)
 
-The CLI reads environment variables from `~/.mc.env`. This file should be in the standard dotenv format.
+The CLI reads environment variables from `~/.mcp.env`. This file should be in the standard dotenv format.
 
 Example:
 
