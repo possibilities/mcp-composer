@@ -82,6 +82,22 @@ Example:
 mc clear claude
 ```
 
+### Servers
+
+List all available servers configured in ~/.mc.json:
+
+```bash
+mc servers [options]
+```
+
+By default, this command shows only server names. Use the verbose option to see detailed configuration:
+
+```bash
+mc servers --verbose
+mc servers -v
+mc servers -V
+```
+
 ## Configuration Files
 
 ### Server Configuration (~/.mc.json)
@@ -140,8 +156,9 @@ These variables are used to validate server requirements and to replace placehol
 ## Supported Clients
 
 The CLI currently supports the following clients:
-- `claude`: `~/.claude.json`
-- `opencode`: `~/.opencode.json`
-- `cline`: `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+- `claude`: `~/.claude.json` (JSON format)
+- `opencode`: `~/.opencode.json` (JSON format)
+- `cline`: `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` (JSON format)
+- `y-cli`: `~/.local/share/y-cli/mcp_config.jsonl` (JSON Lines format)
 
 Each client's configuration file is updated with the appropriate server configuration in the `mcpServers` section.
