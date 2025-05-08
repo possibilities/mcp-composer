@@ -58,7 +58,7 @@ function getConfig() {
 function getJsonlinesConfig(configPath: string) {
   try {
     const configFile = readFileSync(configPath, 'utf8')
-    
+
     // Handle empty files
     if (!configFile.trim()) {
       return { mcpServers: {} }

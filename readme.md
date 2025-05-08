@@ -11,6 +11,7 @@ pnpm install -g mcp-composer
 ```
 
 For development:
+
 ```bash
 git clone <repository-url>
 cd mcp-composer
@@ -99,6 +100,7 @@ mcp-composer servers [options]
 ```
 
 Options:
+
 ```bash
 # Show detailed configuration
 mcp-composer servers --verbose
@@ -140,11 +142,13 @@ Example structure:
 ```
 
 Each server can have the following properties:
+
 - `command`: The command to execute
 - `args`: Array of command-line arguments
 - `env`: Environment variables to pass to the server
 
 Placeholders in the format `%{name}` are supported in both the `args` array and `env` values:
+
 - In `args`, placeholders are replaced with command-line arguments provided when running the add command
 - In `env`, placeholders are replaced with environment variables from `~/.mcp.env` or the system environment
 
@@ -163,6 +167,7 @@ These variables are used to validate server requirements and to replace placehol
 ## Supported Clients
 
 The CLI currently supports the following clients:
+
 - `claude`: `~/.claude.json` (JSON format)
 - `opencode`: `~/.opencode.json` (JSON format)
 - `cline`: `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` (JSON format)
